@@ -1,0 +1,95 @@
+<html>
+<head>
+<title>program.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #6897bb;}
+.s3 { color: #6a8759;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+program.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">face_recognition</span>
+<span class="s0">import </span><span class="s1">cv2</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+<span class="s0">import </span><span class="s1">csv</span>
+<span class="s0">import </span><span class="s1">os</span>
+<span class="s0">import </span><span class="s1">glob</span>
+<span class="s0">from </span><span class="s1">datetime </span><span class="s0">import </span><span class="s1">datetime</span>
+
+<span class="s1">video_capture = cv2.VideoCapture(</span><span class="s2">0</span><span class="s1">)</span>
+
+<span class="s1">jobs_image = face_recognition.load_image_file(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/photos/jobs.jpg&quot;</span><span class="s1">)</span>
+<span class="s1">jobs_encoding = face_recognition.face_encodings(jobs_image)[</span><span class="s2">0</span><span class="s1">]</span>
+
+<span class="s1">ratan_tata_image = face_recognition.load_image_file(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/photos/tata.jpg&quot;</span><span class="s1">)</span>
+<span class="s1">ratan_tata_encoding = face_recognition.face_encodings(ratan_tata_image)[</span><span class="s2">0</span><span class="s1">]</span>
+
+<span class="s1">sadmona_image = face_recognition.load_image_file(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/photos/sadmona.jpg&quot;</span><span class="s1">)</span>
+<span class="s1">sadmona_encoding = face_recognition.face_encodings(sadmona_image)[</span><span class="s2">0</span><span class="s1">]</span>
+
+<span class="s1">tesla_image = face_recognition.load_image_file(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/photos/tesla.jpg&quot;</span><span class="s1">)</span>
+<span class="s1">tesla_encoding = face_recognition.face_encodings(tesla_image)[</span><span class="s2">0</span><span class="s1">]</span>
+
+<span class="s1">known_face_encoding = [</span>
+<span class="s1">jobs_encoding</span><span class="s0">,</span>
+<span class="s1">ratan_tata_encoding</span><span class="s0">,</span>
+<span class="s1">sadmona_encoding</span><span class="s0">,</span>
+<span class="s1">tesla_encoding</span>
+<span class="s1">]</span>
+
+<span class="s1">known_faces_names = [</span>
+<span class="s3">&quot;jobs&quot;</span><span class="s0">,</span>
+<span class="s3">&quot;ratan tata&quot;</span><span class="s0">,</span>
+<span class="s3">&quot;sadmona&quot;</span><span class="s0">,</span>
+<span class="s3">&quot;tesla&quot;</span>
+<span class="s1">]</span>
+<span class="s1">students = known_faces_names.copy()</span>
+<span class="s1">face_locations = []</span>
+<span class="s1">face_encodings = []</span>
+<span class="s1">face_names = []</span>
+<span class="s1">s = </span><span class="s0">True</span>
+
+<span class="s1">now = datetime.now()</span>
+<span class="s1">current_date = now.strftime(</span><span class="s3">&quot;%Y-%m-%d&quot;</span><span class="s1">)</span>
+
+<span class="s1">f = open(current_date + </span><span class="s3">'.csv'</span><span class="s0">, </span><span class="s3">'w+'</span><span class="s0">, </span><span class="s1">newline=</span><span class="s3">''</span><span class="s1">)</span>
+
+<span class="s1">lnwriter = csv.writer(f)</span>
+
+<span class="s0">while True</span><span class="s1">:</span>
+    <span class="s1">_</span><span class="s0">, </span><span class="s1">frame = video_capture.read()</span>
+<span class="s1">small_frame = cv2.resize(frame</span><span class="s0">, </span><span class="s1">(</span><span class="s2">0</span><span class="s0">, </span><span class="s2">0</span><span class="s1">)</span><span class="s0">, </span><span class="s1">fx=</span><span class="s2">0.25</span><span class="s0">, </span><span class="s1">fy=</span><span class="s2">0.25</span><span class="s1">)</span>
+<span class="s1">rgb_small_frame = small_frame[:</span><span class="s0">, </span><span class="s1">:</span><span class="s0">, </span><span class="s1">::-</span><span class="s2">1</span><span class="s1">]</span>
+
+<span class="s0">if </span><span class="s1">s: face_locations = face_recognition.face_locations(rgb_small_frame)</span>
+<span class="s1">face_encodings = face_recognition.face_encodings(rgb_small_frame</span><span class="s0">, </span><span class="s1">face_locations)</span>
+
+<span class="s1">face_names = []</span>
+
+<span class="s0">for </span><span class="s1">face_encoding </span><span class="s0">in </span><span class="s1">face_encodings: matches = face_recognition.compare_faces(known_face_encoding</span><span class="s0">, </span><span class="s1">face_encoding)</span>
+<span class="s1">name = </span><span class="s3">&quot;&quot;</span>
+<span class="s1">face_distance = face_recognition.face_distance(known_face_encoding</span><span class="s0">, </span><span class="s1">face_encoding)</span>
+<span class="s1">best_match_index = np.argmin(face_distance)</span>
+<span class="s0">if </span><span class="s1">matches[best_match_index]:</span>
+    <span class="s1">name = known_faces_names[best_match_index]</span>
+    <span class="s1">face_names.append(name)</span>
+    <span class="s0">if </span><span class="s1">name </span><span class="s0">in </span><span class="s1">known_faces_names:</span>
+        <span class="s0">if </span><span class="s1">name </span><span class="s0">in </span><span class="s1">students:</span>
+            <span class="s1">students.remove(name)</span>
+            <span class="s1">print(students)</span>
+            <span class="s1">current_time = now.strftime(</span><span class="s3">&quot;%H-%M-%S&quot;</span><span class="s1">)</span>
+            <span class="s1">lnwriter.writerow([name</span><span class="s0">, </span><span class="s1">current_time])</span>
+        <span class="s1">cv2.imshow(</span><span class="s3">&quot;attendance system&quot;</span><span class="s0">,</span><span class="s1">frame)</span>
+        <span class="s0">if </span><span class="s1">cv2.waitKey(</span><span class="s2">1</span><span class="s1">) &amp; </span><span class="s2">0xFF </span><span class="s1">== ord(</span><span class="s3">'q'</span><span class="s1">):</span>
+            <span class="s1">video_capture.release()</span>
+    <span class="s1">cv2.destroyAllWindows()</span>
+    <span class="s1">f.close()</span></pre>
+</body>
+</html>

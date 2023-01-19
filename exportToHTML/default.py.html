@@ -1,0 +1,85 @@
+<html>
+<head>
+<title>default.py</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<style type="text/css">
+.s0 { color: #cc7832;}
+.s1 { color: #a9b7c6;}
+.s2 { color: #808080;}
+.s3 { color: #6a8759;}
+.s4 { color: #6897bb;}
+</style>
+</head>
+<body bgcolor="#2b2b2b">
+<table CELLSPACING=0 CELLPADDING=5 COLS=1 WIDTH="100%" BGCOLOR="#606060" >
+<tr><td><center>
+<font face="Arial, Helvetica" color="#000000">
+default.py</font>
+</center></td></tr></table>
+<pre><span class="s0">import </span><span class="s1">cv2</span>
+<span class="s0">import </span><span class="s1">numpy </span><span class="s0">as </span><span class="s1">np</span>
+
+<span class="s2"># Load YOLO model</span>
+<span class="s1">net = cv2.dnn.readNet(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/Dataset/yolov3.weights&quot;</span><span class="s0">, </span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop&quot;</span>
+                                                                                <span class="s3">&quot;/Dataset/yolov3.cfg&quot;</span><span class="s1">)</span>
+<span class="s1">classes = []</span>
+<span class="s0">with </span><span class="s1">open(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/Dataset/coco.names&quot;</span><span class="s0">, </span><span class="s3">&quot;r&quot;</span><span class="s1">) </span><span class="s0">as </span><span class="s1">f:</span>
+    <span class="s1">classes = [line.strip() </span><span class="s0">for </span><span class="s1">line </span><span class="s0">in </span><span class="s1">f.readlines()]</span>
+<span class="s1">layer_names = net.getLayerNames()</span>
+<span class="s1">output_layers = net.getUnconnectedOutLayersNames()</span>
+
+<span class="s2"># Load image</span>
+<span class="s1">img = cv2.imread(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/Dataset/defaultimage1.jpeg&quot;</span><span class="s1">)</span>
+<span class="s1">img = cv2.resize(img</span><span class="s0">, None, </span><span class="s1">fx=</span><span class="s4">0.4</span><span class="s0">, </span><span class="s1">fy=</span><span class="s4">0.4</span><span class="s1">)</span>
+<span class="s1">print(img.shape)</span>
+<span class="s1">height</span><span class="s0">, </span><span class="s1">width</span><span class="s0">, </span><span class="s1">channels = img.shape</span>
+
+<span class="s2"># Detect objects</span>
+<span class="s1">blob = cv2.dnn.blobFromImage(</span>
+    <span class="s1">img</span><span class="s0">, </span><span class="s4">0.00392</span><span class="s0">, </span><span class="s1">(</span><span class="s4">416</span><span class="s0">, </span><span class="s4">16</span><span class="s1">)</span><span class="s0">, </span><span class="s1">(</span><span class="s4">0</span><span class="s0">, </span><span class="s4">0</span><span class="s0">, </span><span class="s4">0</span><span class="s1">)</span><span class="s0">, True, </span><span class="s1">crop=</span><span class="s0">False</span><span class="s1">)</span>
+<span class="s1">print(blob.shape)</span>
+<span class="s1">net.setInput(blob)</span>
+<span class="s1">outs = net.forward(output_layers)</span>
+<span class="s2">#outs = [layer_names[i[0]] for i in net.getUnconnectedOutLayers()]</span>
+<span class="s2"># Show information on the screen</span>
+<span class="s1">class_ids = []</span>
+<span class="s1">confidences = []</span>
+<span class="s1">boxes = []</span>
+<span class="s0">for </span><span class="s1">out </span><span class="s0">in </span><span class="s1">output_layers:</span>
+    <span class="s0">for </span><span class="s1">detection </span><span class="s0">in </span><span class="s1">out:</span>
+        <span class="s1">scores = detection[</span><span class="s4">5</span><span class="s1">:]</span>
+        <span class="s1">class_id = np.argmax(scores)</span>
+        <span class="s1">confidence = scores[class_id]</span>
+        <span class="s0">if </span><span class="s1">confidence &gt; </span><span class="s4">0.5</span><span class="s1">:</span>
+            <span class="s2"># Object detected</span>
+            <span class="s1">center_x = int(detection[</span><span class="s4">0</span><span class="s1">] * width)</span>
+            <span class="s1">center_y = int(detection[</span><span class="s4">1</span><span class="s1">] * height)</span>
+            <span class="s1">w = int(detection[</span><span class="s4">2</span><span class="s1">] * width)</span>
+            <span class="s1">h = int(detection[</span><span class="s4">3</span><span class="s1">] * height)</span>
+            <span class="s2"># Rectangle coordinates</span>
+            <span class="s1">x = int(center_x - w / </span><span class="s4">2</span><span class="s1">)</span>
+            <span class="s1">y = int(center_y - h / </span><span class="s4">2</span><span class="s1">)</span>
+            <span class="s1">boxes.append([x</span><span class="s0">, </span><span class="s1">y</span><span class="s0">, </span><span class="s1">w</span><span class="s0">, </span><span class="s1">h])</span>
+            <span class="s1">confidences.append(float(confidence))</span>
+            <span class="s1">class_ids.append(class_id)</span>
+
+<span class="s2"># Non-maximum suppression</span>
+<span class="s1">indexes = cv2.dnn.NMSBoxes(boxes</span><span class="s0">, </span><span class="s1">confidences</span><span class="s0">, </span><span class="s4">0.5</span><span class="s0">, </span><span class="s4">0.4</span><span class="s1">)</span>
+
+<span class="s2"># Draw boxes</span>
+<span class="s1">font = cv2.FONT_HERSHEY_PLAIN</span>
+<span class="s0">for </span><span class="s1">i </span><span class="s0">in </span><span class="s1">range(len(boxes)):</span>
+    <span class="s0">if </span><span class="s1">i </span><span class="s0">in </span><span class="s1">indexes:</span>
+        <span class="s1">x</span><span class="s0">, </span><span class="s1">y</span><span class="s0">, </span><span class="s1">w</span><span class="s0">, </span><span class="s1">h = boxes[i]</span>
+        <span class="s1">label = str(classes[class_ids[i]])</span>
+        <span class="s1">color = (</span><span class="s4">255</span><span class="s0">, </span><span class="s4">255</span><span class="s0">, </span><span class="s4">0</span><span class="s1">)</span>
+        <span class="s1">cv2.rectangle(img</span><span class="s0">, </span><span class="s1">(x</span><span class="s0">, </span><span class="s1">y)</span><span class="s0">, </span><span class="s1">(x + w</span><span class="s0">, </span><span class="s1">y + h)</span><span class="s0">, </span><span class="s1">color</span><span class="s0">, </span><span class="s4">2</span><span class="s1">)</span>
+        <span class="s1">cv2.putText(img</span><span class="s0">, </span><span class="s1">label</span><span class="s0">, </span><span class="s1">(x</span><span class="s0">, </span><span class="s1">y - </span><span class="s4">5</span><span class="s1">)</span><span class="s0">, </span><span class="s1">font</span><span class="s0">, </span><span class="s4">1</span><span class="s0">, </span><span class="s1">color</span><span class="s0">, </span><span class="s4">2</span><span class="s1">)</span>
+
+<span class="s2"># Show image</span>
+<span class="s1">cv2.imshow(</span><span class="s3">&quot;C:/Users/giris/OneDrive/Desktop/Dataset/defaultimage1.jpeg&quot;</span><span class="s0">, </span><span class="s1">img)</span>
+<span class="s1">cv2.waitKey(</span><span class="s4">0</span><span class="s1">)</span>
+<span class="s1">cv2.destroyAllWindows()</span>
+</pre>
+</body>
+</html>
